@@ -12,7 +12,7 @@ require 'wice/helpers/bs_calendar_helpers.rb'
 require 'wice/helpers/js_calendar_helpers.rb'
 require 'wice/grid_output_buffer.rb'
 require 'wice/wice_grid_controller.rb'
-require 'wice/wice_grid_spreadsheet.rb'
+require 'wice/exporters.rb'
 require 'wice/wice_grid_serialized_queries_controller.rb'
 require 'wice/columns/column_processor_index.rb'
 require 'wice/columns.rb'
@@ -37,6 +37,8 @@ module Wice
     end
 
     Columns.load_column_processors
+    Exporters.load_export_processors
+
     require 'wice/wice_grid_serialized_query.rb'
 
     # It is here only because of this: https://github.com/amatsuda/kaminari/pull/267
@@ -328,7 +330,7 @@ module Wice
     def read  #:nodoc:
       form_ar_options
       use_default_or_unscoped do
-        @resultset = if self.output_csv? || all_record_mode?
+        @resultset = if self.output_export? || all_record_mode?
           relation = @relation
                      .includes(@ar_options[:include])
                      .joins(@ar_options[:joins])
@@ -485,8 +487,8 @@ module Wice
       end.sort { |a, b| a[0] <=> b[0] }
     end
 
-    def output_csv? #:nodoc:
-      @status[:export] == 'csv'
+    def output_export? #:nodoc:
+      !output_html?
     end
 
     def output_html? #:nodoc:

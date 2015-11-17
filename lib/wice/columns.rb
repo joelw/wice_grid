@@ -90,6 +90,7 @@ module Wice #:nodoc:
           require "wice/columns/#{column_source_file}.rb"
         end
       end
+
     end
 
     class ViewColumn  #:nodoc:

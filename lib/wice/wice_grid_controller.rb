@@ -105,7 +105,7 @@ module Wice
     #    end
 
     def export_grid_if_requested(opts = {})
-      grid = self.wice_grid_instances.detect(&:output_csv?)
+      grid = self.wice_grid_instances.detect(&:output_export?)
 
       if grid
         template_name = opts[grid.name] || opts[grid.name.intern]

@@ -114,8 +114,8 @@ module Wice
       reuse_last_column_for_filter_buttons =
         Defaults::REUSE_LAST_COLUMN_FOR_FILTER_ICONS && rendering.last_column_for_html.capable_of_hosting_filter_related_icons?
 
-      if grid.output_csv?
-        grid_csv(grid, rendering)
+      if grid.output_export?
+        grid_export(grid, rendering)
       else
         # If blank_slate is defined we don't show any grid at all
         if rendering.blank_slate_handler && grid.resultset.size == 0 && !grid.filtering_on?
@@ -586,6 +586,35 @@ module Wice
                   class: "wg-detached-filter #{grid.name}_detached_filter",
                   'data-grid-name' => grid.name
     end
+
+
+    def grid_export(grid, rendering)
+      exporter = Exporters.get_export_processor(grid.status[:export].to_sym).new(grid.name, grid.csv_field_separator)
+
+      # columns
+      exporter << rendering.column_labels(:in_csv)
+
+      # rendering  rows
+      grid.each do |ar| # rows
+        row = []
+
+        rendering.each_column(:in_csv) do |column|
+          cell_block = column.cell_rendering_block
+
+          column_block_output = call_block(cell_block, ar)
+
+          if column_block_output.is_a?(Array)
+            column_block_output, _additional_opts = column_block_output
+          end
+
+          row << column_block_output
+        end
+        exporter << row
+      end
+      exporter.render
+      grid.csv_tempfile = exporter.tempfile
+    end
+
 
     def grid_csv(grid, rendering) #:nodoc:
       spreadsheet = ::Wice::Spreadsheet.new(grid.name, grid.csv_field_separator)
